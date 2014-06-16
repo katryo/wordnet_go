@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
+	"os"
 )
 
 func loadNameWithSynsetFromSynset(synset string) string {
@@ -156,11 +157,14 @@ func loadWordidWithSynsetFromSense(synset string) string {
 	return wordid
 }
 func printSynlinksRecursively(wordids []string, depth int) {
+	if depth > 20 {
+		log.Fatal("おしまい")
+	}
 	for j := 0; j < len(wordids); j++ {
 		synsets := loadSynsetsWithWordidFromSense(wordids[j])
 		synlinksSynsets := []string{}
-		for i := 0; i < len(synsets); i++ {
-			synlinksSynsets = append(synlinksSynsets, loadSynsetsWithSynsetFromSynlink(synsets[i])...)
+		for k := 0; k < len(synsets); k++ {
+			synlinksSynsets = append(synlinksSynsets, loadSynsetsWithSynsetFromSynlink(synsets[k])...)
 		}
 		deeperWordids := []string{}
 		if len(synlinksSynsets) != 0 {
@@ -173,13 +177,13 @@ func printSynlinksRecursively(wordids []string, depth int) {
 				newWordid := loadWordidWithSynsetFromSense(synlinksSynsets[i])
 				deeperWordids = append(deeperWordids, newWordid)
 			}
-			printSynlinksRecursively(deeperWordids, depth+1)
 		}
+		printSynlinksRecursively(deeperWordids, depth+1)
 	}
 }
 
 func main() {
-	lemma := "夢"
+	lemma := os.Args[1]
 	wordids := loadWordsWithLemmmaFromWord(lemma)
 	printSynlinksRecursively(wordids, 0)
 }
